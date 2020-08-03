@@ -48,7 +48,10 @@ abstract class Decoder {
   /// Decode the file and extract a single image from it. If the file is
   /// animated, the specified [frame] will be decoded. If there was a problem
   /// decoding the file, null is returned.
-  Image decodeImage(List<int> bytes, {int frame = 0});
+  Image decodeImage(
+    List<int> bytes, {
+    int frame = 0,
+  });
 
   /// Decode the file and extract a single High Dynamic Range (HDR) image from
   /// it. HDR images are stored in floating-poing values. If the format of the

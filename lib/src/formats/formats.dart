@@ -22,7 +22,7 @@ import 'cur_encoder.dart';
 
 /// Find a [Decoder] that is able to decode the given image [data].
 /// Use this is you don't know the type of image it is.
-Decoder findDecoderForData(List<int> data) {
+Decoder findDecoderForData(List<int> data, {int transparentColor}) {
   // The various decoders will be creating a Uint8List for their InputStream
   // if the data isn't already that type, so do it once here to avoid having to
   // do it multiple times.
@@ -63,7 +63,7 @@ Decoder findDecoderForData(List<int> data) {
     return exr;
   }
 
-  var bmp = BmpDecoder();
+  var bmp = BmpDecoder(transparentColor: transparentColor);
   if (bmp.isValidFile(bytes)) {
     return bmp;
   }
@@ -78,8 +78,8 @@ Decoder findDecoderForData(List<int> data) {
 
 /// Decode the given image file bytes by first identifying the format of the
 /// file and using that decoder to decode the file into a single frame [Image].
-Image decodeImage(List<int> data) {
-  var decoder = findDecoderForData(data);
+Image decodeImage(List<int> data, {int transparentColor}) {
+  var decoder = findDecoderForData(data, transparentColor: transparentColor);
   if (decoder == null) {
     return null;
   }

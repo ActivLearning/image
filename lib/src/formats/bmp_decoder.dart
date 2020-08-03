@@ -1,12 +1,51 @@
+import 'dart:math';
+
 import '../animation.dart';
 import '../image.dart';
 import '../util/input_buffer.dart';
 import 'decoder.dart';
 import 'bmp/bmp_info.dart';
 
+class BitColor {
+  int b;
+  int g;
+  int r;
+  int reserved;
+  BitColor(this.b, this.g, this.r);
+  int toColorInt() {
+    return 0xff << 24 | b << 16 | g << 8 | r;
+  }
+}
+
+BitColor getColor8FromPalette(int color) =>
+    BitColor(color & 0xff, (color >> 8) & 0xff, (color >> 16) & 0xff);
+
+class Palette {
+  List<BitColor> _colors = List<BitColor>();
+  Palette(InputBuffer buffer, int paletteColorTotal) {
+    while (paletteColorTotal > 0) {
+      int bitColors = buffer.readInt32();
+      _colors.add(getColor8FromPalette(bitColors));
+      paletteColorTotal--;
+    }
+  }
+  BitColor operator [](int index) {
+    if (index < 0 || index >= _colors.length) {
+      return BitColor(0xff, 0xff, 0xff);
+    }
+    return _colors[index];
+  }
+}
+
 class BmpDecoder extends Decoder {
   InputBuffer _input;
   BmpInfo info;
+
+  ///this color will be set to transparent.
+  final int transparentColor;
+  Palette _palette;
+
+  BmpDecoder({this.transparentColor});
 
   /// Is the given file a valid BMP image?
   @override
@@ -22,6 +61,9 @@ class BmpDecoder extends Decoder {
     if (!isValidFile(bytes)) return null;
     _input = InputBuffer(bytes);
     info = BmpInfo(_input);
+    if (info.bpp < 24) {
+      _palette = Palette(_input, pow(2, info.bpp).toInt());
+    }
     return info;
   }
 
@@ -45,7 +87,15 @@ class BmpDecoder extends Decoder {
       var line = info.readBottomUp ? y : image.height - 1 - y;
       var row = _input.readBytes(rowStride);
       for (var x = 0; x < image.width; ++x) {
-        final color = info.decodeRgba(row);
+        int color;
+        if (info.bpp >= 16) {
+          color = info.decodeRgba(row);
+        } else {
+          color = _palette[info.decodeRgba(row)].toColorInt();
+          if (transparentColor != null) {
+            color &= 0x00ffffff;
+          }
+        }
         image.setPixel(x, line, color);
       }
     }
