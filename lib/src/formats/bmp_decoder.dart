@@ -81,7 +81,7 @@ class BmpDecoder extends Decoder {
       rowStride++;
     }
 
-    var image = Image(info.width, info.height, channels: Channels.rgb);
+    var image = Image(info.width, info.height, channels: Channels.rgba);
 
     for (var y = image.height - 1; y >= 0; --y) {
       var line = info.readBottomUp ? y : image.height - 1 - y;
