@@ -113,24 +113,25 @@ class BmpInfo extends DecodeInfo {
       return _readRgba(input);
     } else if (bpp == 24) {
       return _readRgba(input, aDefault: 0);
-    }
-    // else if (bpp == 16) {
-    //   return _rgbaFrom16(input);
-    // }
-    else {
+    } else if (bpp == 16) {
+      var val = _rgbaFrom16(input);
+      return (0xff << 24 | val[2] << 16 | val[1] << 8 | val[0]);
+    } else if (bpp == 8) {
+      return input.readByte();
+    } else {
       throw ImageException(
           'Unsupported bpp ($bpp) or compression unsupported.');
     }
   }
 
   // TODO: finish decoding for 16 bit
-  // List<int> _rgbaFrom16(InputBuffer input) {
-  //   final maskRed = 0x7C00;
-  //   final maskGreen = 0x3E0;
-  //   final maskBlue = 0x1F;
-  //   final pixel = input.readUint16();
-  //   return [(pixel & maskRed), (pixel & maskGreen), (pixel & maskBlue), 0];
-  // }
+  List<int> _rgbaFrom16(InputBuffer input) {
+    final maskRed = 0x7C00;
+    final maskGreen = 0x3E0;
+    final maskBlue = 0x1F;
+    final pixel = input.readUint16();
+    return [(pixel & maskRed), (pixel & maskGreen), (pixel & maskBlue), 0];
+  }
 
   String _compToString() {
     switch (compression) {
