@@ -21,10 +21,10 @@ BitColor getColor8FromPalette(int color) =>
     BitColor(color & 0xff, (color >> 8) & 0xff, (color >> 16) & 0xff);
 
 class Palette {
-  List<BitColor> _colors = List<BitColor>();
-  Palette(InputBuffer buffer, int paletteColorTotal) {
+  final List<BitColor> _colors = [];
+  Palette(InputBuffer buffer, num paletteColorTotal) {
     while (paletteColorTotal > 0) {
-      int bitColors = buffer.readInt32();
+      final bitColors = buffer.readInt32();
       _colors.add(getColor8FromPalette(bitColors));
       paletteColorTotal--;
     }
@@ -62,7 +62,7 @@ class BmpDecoder extends Decoder {
     _input = InputBuffer(bytes);
     info = BmpInfo(_input);
     if (info.bpp < 24) {
-      _palette = Palette(_input, pow(2, info.bpp).toInt());
+      _palette = Palette(_input, pow(2, info.bpp));
     }
     return info;
   }
@@ -92,7 +92,7 @@ class BmpDecoder extends Decoder {
           color = info.decodeRgba(row);
         } else {
           color = _palette[info.decodeRgba(row)].toColorInt();
-          if (transparentColor != null) {
+          if (transparentColor != null && color == transparentColor) {
             color &= 0x00ffffff;
           }
         }
